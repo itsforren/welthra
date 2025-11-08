@@ -1,18 +1,11 @@
+import { gateway } from "@ai-sdk/gateway";
 import {
   customProvider,
-  wrapLanguageModel,
   extractReasoningMiddleware,
+  wrapLanguageModel,
 } from "ai";
-
-import { createOpenAI } from "@ai-sdk/openai";
 import { isTestEnvironment } from "../constants";
 
-// Create the OpenAI client (no Gateway)
-const openai = createOpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
-
-// Test environment uses mocks
 export const myProvider = isTestEnvironment
   ? (() => {
       const {
@@ -21,7 +14,6 @@ export const myProvider = isTestEnvironment
         reasoningModel,
         titleModel,
       } = require("./models.mock");
-
       return customProvider({
         languageModels: {
           "chat-model": chatModel,
@@ -33,12 +25,12 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": openai.languageModel("gpt-4o"),
+        "chat-model": gateway.languageModel("xai/grok-2-vision-1212"),
         "chat-model-reasoning": wrapLanguageModel({
-          model: openai.languageModel("gpt-4.1"),
+          model: gateway.languageModel("xai/grok-3-mini"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": openai.languageModel("gpt-4o-mini"),
-        "artifact-model": openai.languageModel("gpt-4o-mini"),
+        "title-model": gateway.languageModel("xai/grok-2-1212"),
+        "artifact-model": gateway.languageModel("xai/grok-2-1212"),
       },
     });
