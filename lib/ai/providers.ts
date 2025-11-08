@@ -1,15 +1,10 @@
-import OpenAI from "openai";
 import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from "ai";
-import { isTestEnvironment } from "../constants";
 
-// ✅ Initialize OpenAI client
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+import { isTestEnvironment } from "../constants";
 
 export const myProvider = isTestEnvironment
   ? (() => {
@@ -30,25 +25,25 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        // ✅ The main chat model (GPT-5)
-        "chat-model": wrapLanguageModel({
-          model: openai.chat.completions,
-        }),
-
-        // ✅ Reasoning version — still GPT-5 but with "reasoning" tag
+        // ★ Your OpenAI models here
+        "chat-model": {
+          provider: "openai",
+          model: "gpt-5"
+        },
         "chat-model-reasoning": wrapLanguageModel({
-          model: openai.chat.completions,
+          model: {
+            provider: "openai",
+            model: "gpt-4.1"
+          },
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-
-        // ✅ Title model (also OpenAI)
-        "title-model": wrapLanguageModel({
-          model: openai.chat.completions,
-        }),
-
-        // ✅ Artifact / tool model (also OpenAI)
-        "artifact-model": wrapLanguageModel({
-          model: openai.chat.completions,
-        }),
+        "title-model": {
+          provider: "openai",
+          model: "gpt-4.1"
+        },
+        "artifact-model": {
+          provider: "openai",
+          model: "gpt-4.1"
+        },
       },
     });
