@@ -1,10 +1,15 @@
-import { gateway } from "@ai-sdk/gateway";
+import OpenAI from "openai";
 import {
   customProvider,
   extractReasoningMiddleware,
   wrapLanguageModel,
 } from "ai";
 import { isTestEnvironment } from "../constants";
+
+// ✅ Initialize OpenAI client
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY!,
+});
 
 export const myProvider = isTestEnvironment
   ? (() => {
@@ -25,12 +30,25 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": gateway.languageModel("xai/grok-2-vision-1212"),
+        // ✅ The main chat model (GPT-5)
+        "chat-model": wrapLanguageModel({
+          model: openai.chat.completions,
+        }),
+
+        // ✅ Reasoning version — still GPT-5 but with "reasoning" tag
         "chat-model-reasoning": wrapLanguageModel({
-          model: gateway.languageModel("xai/grok-3-mini"),
+          model: openai.chat.completions,
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": gateway.languageModel("xai/grok-2-1212"),
-        "artifact-model": gateway.languageModel("xai/grok-2-1212"),
+
+        // ✅ Title model (also OpenAI)
+        "title-model": wrapLanguageModel({
+          model: openai.chat.completions,
+        }),
+
+        // ✅ Artifact / tool model (also OpenAI)
+        "artifact-model": wrapLanguageModel({
+          model: openai.chat.completions,
+        }),
       },
     });
