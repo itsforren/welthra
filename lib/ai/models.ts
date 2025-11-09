@@ -14,7 +14,7 @@ export const chatModels: ChatModel[] = [
   },
   {
     id: "chat-model-reasoning",
-    name: "Welthra Reasoning (GPT-4o)",
+    name: "Welthra Deep Thought (GPT-4o)",
     description: "Used for structured outputs and deep reasoning.",
   }
 ];
