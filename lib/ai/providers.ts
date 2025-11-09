@@ -1,19 +1,10 @@
 import { gateway } from "@ai-sdk/gateway";
-import {
-  customProvider,
-  extractReasoningMiddleware,
-  wrapLanguageModel,
-} from "ai";
+import { customProvider, extractReasoningMiddleware, wrapLanguageModel } from "ai";
 import { isTestEnvironment } from "../constants";
 
 export const myProvider = isTestEnvironment
   ? (() => {
-      const {
-        artifactModel,
-        chatModel,
-        reasoningModel,
-        titleModel,
-      } = require("./models.mock");
+      const { artifactModel, chatModel, reasoningModel, titleModel } = require("./models.mock");
       return customProvider({
         languageModels: {
           "chat-model": chatModel,
@@ -25,12 +16,15 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": gateway.languageModel("xai/grok-2-vision-1212"),
+        // Main chat
+        "chat-model": gateway.languageModel("openai/gpt-4o"),
+        // Tool/reasoning (same model wrapped with middleware)
         "chat-model-reasoning": wrapLanguageModel({
-          model: gateway.languageModel("xai/grok-3-mini"),
+          model: gateway.languageModel("openai/gpt-4o"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": gateway.languageModel("xai/grok-2-1212"),
-        "artifact-model": gateway.languageModel("xai/grok-2-1212"),
+        // Small/cheap models for titles & artifacts
+        "title-model": gateway.languageModel("openai/gpt-4o-mini"),
+        "artifact-model": gateway.languageModel("openai/gpt-4o-mini"),
       },
     });
