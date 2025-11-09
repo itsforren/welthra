@@ -9,12 +9,12 @@ export type ChatModel = {
 export const chatModels: ChatModel[] = [
   {
     id: "chat-model",
-    name: "Welthra GPT-4o",
-    description: "OpenAI’s flagship intelligence for Welthra.",
+    name: "Welthra",
+    description: "Welthra’s flagship for wealth planning intelligence.",
   },
   {
     id: "chat-model-reasoning",
-    name: "Welthra Deep Thought (GPT-4o)",
+    name: "Welthra Deep Thought",
     description: "Used for structured outputs and deep reasoning.",
   }
 ];
