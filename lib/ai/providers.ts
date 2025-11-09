@@ -1,4 +1,3 @@
-import { gateway } from "@ai-sdk/gateway";
 import {
   customProvider,
   extractReasoningMiddleware,
@@ -6,6 +5,7 @@ import {
 } from "ai";
 import { isTestEnvironment } from "../constants";
 
+// ✅ TEST ENVIRONMENT USES MOCK MODELS
 export const myProvider = isTestEnvironment
   ? (() => {
       const {
@@ -14,6 +14,7 @@ export const myProvider = isTestEnvironment
         reasoningModel,
         titleModel,
       } = require("./models.mock");
+
       return customProvider({
         languageModels: {
           "chat-model": chatModel,
@@ -25,12 +26,31 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        "chat-model": gateway.languageModel("xai/grok-2-vision-1212"),
+        // ✅ MAIN CHAT MODEL — Welthra GPT-4o
+        "chat-model": {
+          provider: "openai",
+          modelId: "gpt-4o",
+        },
+
+        // ✅ REASONING MODEL — Wrapped GPT-4o
         "chat-model-reasoning": wrapLanguageModel({
-          model: gateway.languageModel("xai/grok-3-mini"),
+          model: {
+            provider: "openai",
+            modelId: "gpt-4o",
+          },
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
-        "title-model": gateway.languageModel("xai/grok-2-1212"),
-        "artifact-model": gateway.languageModel("xai/grok-2-1212"),
+
+        // ✅ TITLE GENERATION (smaller model)
+        "title-model": {
+          provider: "openai",
+          modelId: "gpt-4o-mini",
+        },
+
+        // ✅ ARTIFACT / DOCUMENT GENERATION
+        "artifact-model": {
+          provider: "openai",
+          modelId: "gpt-4o-mini",
+        },
       },
     });
