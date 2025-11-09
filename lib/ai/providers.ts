@@ -1,3 +1,6 @@
+// lib/ai/providers.ts
+
+import { createOpenAI } from "@ai-sdk/openai";
 import {
   customProvider,
   extractReasoningMiddleware,
@@ -5,7 +8,12 @@ import {
 } from "ai";
 import { isTestEnvironment } from "../constants";
 
-// ✅ TEST ENVIRONMENT USES MOCK MODELS
+// Create an OpenAI client for the AI SDK
+const openai = createOpenAI({
+  // If you also use Vercel AI Gateway, you can pass baseURL here instead.
+  apiKey: process.env.OPENAI_API_KEY!,
+});
+
 export const myProvider = isTestEnvironment
   ? (() => {
       const {
@@ -26,31 +34,19 @@ export const myProvider = isTestEnvironment
     })()
   : customProvider({
       languageModels: {
-        // ✅ MAIN CHAT MODEL — Welthra GPT-4o
-        "chat-model": {
-          provider: "openai",
-          modelId: "gpt-4o",
-        },
+        // Main chat model (Welthra powered by GPT-4o)
+        "chat-model": openai.languageModel("gpt-4o"),
 
-        // ✅ REASONING MODEL — Wrapped GPT-4o
+        // Reasoning/tool-calling model (still GPT-4o, wrapped to capture reasoning traces)
         "chat-model-reasoning": wrapLanguageModel({
-          model: {
-            provider: "openai",
-            modelId: "gpt-4o",
-          },
+          model: openai.languageModel("gpt-4o"),
           middleware: extractReasoningMiddleware({ tagName: "think" }),
         }),
 
-        // ✅ TITLE GENERATION (smaller model)
-        "title-model": {
-          provider: "openai",
-          modelId: "gpt-4o-mini",
-        },
+        // Small/cheap model for titles
+        "title-model": openai.languageModel("gpt-4o-mini"),
 
-        // ✅ ARTIFACT / DOCUMENT GENERATION
-        "artifact-model": {
-          provider: "openai",
-          modelId: "gpt-4o-mini",
-        },
+        // For artifacts/doc generation panes
+        "artifact-model": openai.languageModel("gpt-4o-mini"),
       },
     });
