@@ -20,7 +20,7 @@ import { auth, type UserType } from "@/app/(auth)/auth";
 import type { VisibilityType } from "@/components/visibility-selector";
 import { entitlementsByUserType } from "@/lib/ai/entitlements";
 import type { ChatModel } from "@/lib/ai/models";
-import { type RequestHints, systemPrompt } from "@/lib/ai/prompts";
+import { getRequestPromptFromHints, type RequestHints } from "@/lib/ai/prompts";
 import { myProvider } from "@/lib/ai/providers";
 import { createDocument } from "@/lib/ai/tools/create-document";
 import { getWeather } from "@/lib/ai/tools/get-weather";
@@ -177,12 +177,26 @@ export async function POST(request: Request) {
 
     let finalMergedUsage: AppUsage | undefined;
 
+    const requestPrompt = getRequestPromptFromHints(requestHints);
+
+    const modelMessages = convertToModelMessages(uiMessages);
+
+    const hasRequestContext = [
+      requestHints.latitude,
+      requestHints.longitude,
+      requestHints.city,
+      requestHints.country,
+    ].some((value) => value !== undefined && value !== null && value !== "");
+
+    const messagesWithContext = hasRequestContext
+      ? [{ role: "system" as const, content: requestPrompt }, ...modelMessages]
+      : modelMessages;
+
     const stream = createUIMessageStream({
       execute: ({ writer: dataStream }) => {
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel, requestHints }),
-          messages: convertToModelMessages(uiMessages),
+          messages: messagesWithContext,
           stopWhen: stepCountIs(5),
           experimental_activeTools:
             selectedChatModel === "chat-model-reasoning"
